@@ -277,6 +277,9 @@ lgb.plot_importance(model, grid=False, max_num_features=20, importance_type="gai
 plt.show()
 
 from optuna.integration.lightgbm import LightGBMTuner
+dt = lgb.Dataset(Xt, yt, silent=True)
+ds = lgb.Dataset(Xs, ys, silent=True)
+dv = lgb.Dataset(Xv, yv, silent=True)
 
 auto_booster = LightGBMTuner(
     params,
@@ -301,7 +304,3 @@ for key, value in best_params.items():
     print(f"    {key}: {value}")
 
 print(f"Dropped features: {dropped_features}")
-
-from sklearn.metrics import r2_score
-
-r2_score(yv, model.predict(Xv, num_iteration=model.best_iteration))

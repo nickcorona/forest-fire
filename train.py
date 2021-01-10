@@ -2,6 +2,7 @@ import lightgbm as lgb
 from helpers import preprocess
 import pandas as pd
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 df = pd.read_csv(
     r"data\forestfires.csv",
@@ -32,6 +33,10 @@ model = lgb.train(
     params,
     d,
 )
+
+Path("figures").mkdir(exist_ok=True)
+lgb.plot_importance(model, grid=False)
+plt.savefig("figures/feature_importange.png")
 
 Path("models").mkdir(exist_ok=True)
 model.save_model(

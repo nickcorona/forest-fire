@@ -1,3 +1,5 @@
-### Predict insurance
+### Predict forest fires
 
-Tweedie regression lowered RMSE. Pol duration lowered RMSE but that's because of the lower average cost. Adding weight to dataset substantially lowered RMSE. Tweaking tweedie variance power in hyperparameter tuning may offer additional gain.
+Validation RMSE: 98.2378
+
+![feature importance](figures/feature_importange.png)
