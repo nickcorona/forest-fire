@@ -14,6 +14,7 @@ X = X.drop("rain", axis=1)
 d = lgb.Dataset(X, y, silent=True)
 
 # rmse: 98.18188205858038
+NUM_BOOST_ROUND = 455
 params = {
     "objective": "rmse",
     "metric": "rmse",
@@ -28,13 +29,9 @@ params = {
     "bagging_fraction": 1.0,
     "bagging_freq": 0,
     "min_child_samples": 20,
-    "num_boost_round": 455,
 }
 
-model = lgb.train(
-    params,
-    d,
-)
+model = lgb.train(params, d, num_boost_round=NUM_BOOST_ROUND)
 
 Path("figures").mkdir(exist_ok=True)
 lgb.plot_importance(model, grid=False)
@@ -43,6 +40,6 @@ plt.savefig("figures/feature_importange.png")
 Path("models").mkdir(exist_ok=True)
 model.save_model(
     "models/model.pkl",
-    num_iteration=params["num_boost_round"],
+    num_iteration=NUM_BOOST_ROUND,
     importance_type="gain",
 )
