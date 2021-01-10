@@ -33,6 +33,7 @@ ENCODE = True
 CATEGORIZE = True
 X, y = preprocess(df, False, True, False)
 sns.kdeplot(y)
+plt.title("KDE distribution")
 plt.show()
 
 SEED = 0
@@ -60,6 +61,7 @@ params = {
     "metric": METRIC,
     "verbose": -1,
     "n_jobs": 6,
+    "tweedie_variance_power": 1.3,
 }
 
 model = lgb.train(
@@ -277,6 +279,7 @@ lgb.plot_importance(model, grid=False, max_num_features=20, importance_type="gai
 plt.show()
 
 from optuna.integration.lightgbm import LightGBMTuner
+
 dt = lgb.Dataset(Xt, yt, silent=True)
 ds = lgb.Dataset(Xs, ys, silent=True)
 dv = lgb.Dataset(Xv, yv, silent=True)
@@ -296,7 +299,7 @@ auto_booster.run()
 score = auto_booster.best_score
 best_params = auto_booster.best_params
 model = auto_booster.get_best_booster()
-best_params['num_boost_rounds'] = model.best_iteration
+best_params["num_boost_rounds"] = model.best_iteration
 print("Best params:", best_params)
 print(f"  {METRIC} = {score}")
 print("  Params: ")
