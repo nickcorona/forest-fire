@@ -1,0 +1,1 @@
+kaggle datasets download -d elikplim/forest-fires-data-set

@@ -3,6 +3,7 @@ from pathlib import Path
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.core.fromnumeric import mean
 from numpy.core.numeric import True_
 import pandas as pd
 import seaborn as sns
@@ -17,7 +18,7 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 from helpers import encode_dates, loguniform, preprocess
 
 df = pd.read_csv(
-    r"data\training.csv",
+    r"data\forestfires.csv",
     parse_dates=[],
     index_col=[],
 )
@@ -30,8 +31,9 @@ print(
 
 ENCODE = True
 CATEGORIZE = True
-X, y = preprocess(df)
-
+X, y = preprocess(df, False, True, False)
+sns.kdeplot(y)
+plt.show()
 
 SEED = 0
 SAMPLE_SIZE = 10000
@@ -46,7 +48,7 @@ Xs, ys = Xt.loc[sample_idx], yt.loc[sample_idx]
 ds = lgb.Dataset(Xs, ys)
 dv = lgb.Dataset(Xv, yv, free_raw_data=False)
 
-OBJECTIVE = "tweedie"
+OBJECTIVE = "rmse"
 METRIC = "rmse"
 MAXIMIZE = False
 EARLY_STOPPING_ROUNDS = 10
@@ -117,7 +119,7 @@ plt.xlabel("learning rate")
 plt.ylabel(METRIC)
 plt.show()
 
-params["learning_rate"] = best_eta  # 0.03625071824840758
+params["learning_rate"] = best_eta
 
 model = lgb.train(
     params,
@@ -269,14 +271,14 @@ if feature_elimination:
     )
 
 dropped_features = list(correlated_features) + unimportant_features
+print(dropped_features)
 
-import optuna.integration.lightgbm as lgb
+lgb.plot_importance(model, grid=False, max_num_features=20, importance_type="gain")
+plt.show()
 
-dt = lgb.Dataset(Xt, yt, silent=True)
-ds = lgb.Dataset(Xs, ys, silent=True)
-dv = lgb.Dataset(Xv, yv, silent=True)
+from optuna.integration.lightgbm import LightGBMTuner
 
-model = lgb.train(
+auto_booster = LightGBMTuner(
     params,
     dt,
     valid_sets=[dt, dv],
@@ -286,9 +288,12 @@ model = lgb.train(
     early_stopping_rounds=EARLY_STOPPING_ROUNDS,
 )
 
-score = model.best_score["valid"][METRIC]
+auto_booster.run()
 
-best_params = model.params
+score = auto_booster.best_score
+best_params = auto_booster.best_params
+model = auto_booster.get_best_booster()
+best_params['num_boost_rounds'] = model.best_iteration
 print("Best params:", best_params)
 print(f"  {METRIC} = {score}")
 print("  Params: ")
@@ -296,3 +301,7 @@ for key, value in best_params.items():
     print(f"    {key}: {value}")
 
 print(f"Dropped features: {dropped_features}")
+
+from sklearn.metrics import r2_score
+
+r2_score(yv, model.predict(Xv, num_iteration=model.best_iteration))

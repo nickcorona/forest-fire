@@ -22,19 +22,16 @@ def encode_dates(df, column):
 
 
 def preprocess(df, encode, categorize, preran):
-    y = df["claim_amount"]
+    y = df["area"]
     X = df.drop(
-        ["claim_amount"],
+        ["area"],
         axis=1,
     )
 
     X.info()
 
     if encode:
-        encode_columns = [
-            "id_policy",
-            "vh_make_model",
-        ]
+        encode_columns = []
         n_prototypes = 5
         if not preran:
             enc = SimilarityEncoder(
